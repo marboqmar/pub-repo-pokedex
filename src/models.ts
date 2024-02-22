@@ -2,6 +2,7 @@ export interface Pokemon {
     name: string;
     imageUrl: string;
     id: number;
+    isFav: boolean;
 }
 
 export interface PokemonFromApi {

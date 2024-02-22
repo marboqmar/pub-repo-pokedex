@@ -5,12 +5,11 @@ import { PokemonDetails } from './assets/details/PokemonDetails.tsx';
 export const router = createBrowserRouter([
     {
         path: '/',
-        element: <App />,
-        children: [
-            {
-                path: '/pokemon/:pokemonId',
-                element: <PokemonDetails />
-            },
-        ]
-    }
+        element: <App/>,
+    },
+    {
+        path: '/pokemon/:pokemonId',
+        element: <PokemonDetails />
+    },
+
 ]);

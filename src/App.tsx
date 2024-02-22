@@ -17,12 +17,15 @@ export const mapPokemonApiToPokemonView = (pokemon: PokemonFromApi[]): Pokemon[]
             name: pokemonItem.name,
             imageUrl: getImage(index + 1),
             id: index + 1,
+            isFav: false,
         };
     });
 };
 
 export const App = () => {
     const [pokemons, setPokemons] = useState<Pokemon[]>([]);
+    const [hasDiscoveredFav, setHasDiscoveredFav] = useState(false);
+
     console.log(pokemons)
 
     useEffect(() => {
@@ -34,17 +37,43 @@ export const App = () => {
         fetchPokemons();
     }, []);
 
+    const handlePokemonClick = (pokemonId: number) => {
+        setHasDiscoveredFav(true);
+
+        const newPokemonsMap = pokemons.map((pokemonInfo: Pokemon) => {
+            if (pokemonId === pokemonInfo.id) {
+                const newPokemonInfo = { ...pokemonInfo };
+                newPokemonInfo.isFav = !pokemonInfo.isFav;
+                return newPokemonInfo;
+            }
+
+            return pokemonInfo;
+        });
+
+        setPokemons(newPokemonsMap);
+    };
+
     return (
         <>
             <input className="search" type="text" placeholder="Escribe para buscar" />
             <div className="pokemons">
                 {pokemons.map((pokemon: Pokemon) => (
-                    <a key={pokemon.id} href={`/pokemon/${pokemon.name}`}>
+                    <Link key={pokemon.id} to={`/pokemon/${pokemon.name}`}>
                         <div className="pokemon">
                             <img src={pokemon.imageUrl} />
                             <p>{pokemon.name}</p>
+                            <i
+                                className={pokemon.isFav ? "fa-solid fa-heart" : "fa-regular fa-heart"}
+                                onClick={(event) => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+
+                                    handlePokemonClick(pokemon.id);
+                                }}
+                                style={{color: pokemon.isFav? 'red' : 'black'}}
+                            />
                         </div>
-                    </a>
+                    </Link>
                 ))}
             </div>
         </>
