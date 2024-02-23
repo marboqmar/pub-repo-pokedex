@@ -3,6 +3,7 @@ import axios from 'axios';
 import {Pokemon, PokemonFromApi} from './models';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { capitalize } from 'lodash';
 
 
 const apiURL = 'https://pokeapi.co/api/v2/pokemon?limit=151';
@@ -23,7 +24,7 @@ export const mapPokemonApiToPokemonView = (pokemon: PokemonFromApi[]): Pokemon[]
     });
 };
 
-// Call API, use parser and safe info to "pokemons", handle fav functionality
+// Call API, use parser and safe info to 'pokemons', handle fav functionality
 export const App = () => {
     const [pokemons, setPokemons] = useState<Pokemon[]>([]);
     const [hasDiscoveredFav, setHasDiscoveredFav] = useState(false);
@@ -55,15 +56,15 @@ export const App = () => {
 
     return (
         <>
-            <input className="search" type="text" placeholder="Escribe para buscar" />
-            <div className="pokemons">
+            <input className='search' type='text' placeholder='Find your favourite pokemon!' />
+            <div className='pokemons'>
                 {pokemons.map((pokemon: Pokemon) => (
-                    <Link key={pokemon.id} to={`/pokemon/${pokemon.name}`}>
-                        <div className="pokemon">
+                    <Link className={'link'} key={pokemon.id} to={`/pokemon/${pokemon.name}`}>
+                        <div className='pokemon'>
                             <img src={pokemon.imageUrl} />
-                            <p>{pokemon.name}</p>
+                            <p>{capitalize(pokemon.name)}</p>
                             <i
-                                className={pokemon.isFav ? "fa-solid fa-heart" : "fa-regular fa-heart"}
+                                className={pokemon.isFav ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}
                                 onClick={(event) => {
                                     event.preventDefault();
                                     event.stopPropagation();
