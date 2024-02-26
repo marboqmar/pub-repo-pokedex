@@ -1,16 +1,10 @@
 import './App.css'
 import axios from 'axios';
-import {Pokemon, PokemonFromApi} from './models';
+import { Pokemon, PokemonFromApi } from './models';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { apiURL, getImage } from './assets/utils.tsx'
 import { capitalize } from 'lodash';
-
-
-const apiURL = 'https://pokeapi.co/api/v2/pokemon?limit=151';
-
-export const getImage = (number: number): string => {
-    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${number}.png`;
-};
 
 // Parser
 export const mapPokemonApiToPokemonView = (pokemon: PokemonFromApi[]): Pokemon[] => {
@@ -24,23 +18,32 @@ export const mapPokemonApiToPokemonView = (pokemon: PokemonFromApi[]): Pokemon[]
     });
 };
 
-// Call API, use parser and safe info to 'pokemons', handle fav functionality
+// Call API, use parser and safe info to 'pokemons', search functionality, handle fav functionality
 export const App = () => {
+    // Call API, use parser and safe info to 'pokemons'
     const [pokemons, setPokemons] = useState<Pokemon[]>([]);
-    const [hasDiscoveredFav, setHasDiscoveredFav] = useState(false);
+    const [pokemonList, setPokemonList] = useState<Pokemon[]>([]);
 
     useEffect(() => {
         const fetchPokemons = async () => {
             const response = await axios.get(apiURL);
+            setPokemonList(mapPokemonApiToPokemonView(response.data.results));
             setPokemons(mapPokemonApiToPokemonView(response.data.results));
         };
 
         fetchPokemons();
     }, []);
 
-    const handlePokemonClick = (pokemonId: number) => {
-        setHasDiscoveredFav(true);
+    // Search functionality
+    const handleSearchBar = (event) => {
+        const pokemonSearch: Pokemon[] = pokemonList.filter((pokemon: Pokemon) => {
+            return pokemon.name.includes(event.target.value);
+        })
+        setPokemons(pokemonSearch)
+    };
 
+    // Fav functionality
+    const handlePokemonClick = (pokemonId: number) => {
         const newPokemonsMap = pokemons.map((pokemonInfo: Pokemon) => {
             if (pokemonId === pokemonInfo.id) {
                 const newPokemonInfo = { ...pokemonInfo };
@@ -56,11 +59,11 @@ export const App = () => {
 
     return (
         <>
-            <input className='search' type='text' placeholder='Find your favourite pokemon!' />
-            <div className='pokemons'>
+            <input id={'searchBar'} type={'text'} onChange={handleSearchBar} placeholder={'Find your favourite pokemon!'} />
+            <div className={'pokemons'}>
                 {pokemons.map((pokemon: Pokemon) => (
                     <Link className={'link'} key={pokemon.id} to={`/pokemon/${pokemon.name}`}>
-                        <div className='pokemon'>
+                        <div className={'pokemon'}>
                             <img src={pokemon.imageUrl} />
                             <p>{capitalize(pokemon.name)}</p>
                             <i

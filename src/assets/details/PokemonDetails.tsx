@@ -2,22 +2,14 @@ import { useParams } from 'react-router-dom';
 import {useEffect, useState} from 'react';
 import axios from 'axios';
 import {PokemonParsedDetails, PokemonDetailsFromApi} from '../../models.ts';
-import {getImage} from '../../App.tsx';
+import { getImage, detailsApiURL, getShinyImage } from '../utils.tsx';
 import { capitalize } from 'lodash';
-
-const apiURL: string = 'https://pokeapi.co/api/v2/pokemon/';
-
-// Regular image is imported, shiny image is obtained here
-export const getShinyImage = (number: number): string => {
-    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${number}.png`;
-};
 
 // Parser
 const mapPokemonDetailsApiToPokemonDetails = (pokemon: PokemonDetailsFromApi[]): PokemonParsedDetails[] => {
     let pokemonTypes: [] = [];
 
     pokemon.types.forEach(function(type) {
-        console.log(type.type.name)
         pokemonTypes.push(type.type.name)
     })
 
@@ -39,7 +31,7 @@ export const PokemonDetails = () => {
 
     useEffect(() => {
         const fetchPokemon = async () => {
-            const response = await axios.get(`${apiURL + pokemonId}`);
+            const response = await axios.get(`${detailsApiURL + pokemonId}`);
             setPokemon(mapPokemonDetailsApiToPokemonDetails(response.data));
         };
 

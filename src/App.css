@@ -9,7 +9,7 @@ body {
   padding: 20px 60px;
 }
 
-.search {
+#searchBar {
   width: 400px;
   height: 24px;
   font-family: 'Montserrat', sans-serif;
