@@ -3,17 +3,16 @@ import {useEffect, useState} from 'react';
 import axios from 'axios';
 import {PokemonParsedDetails, PokemonDetailsFromApi} from '../../models.ts';
 import { getImage, detailsApiURL, getShinyImage } from '../utils.tsx';
-import { capitalize } from 'lodash';
 
 // Parser
 const mapPokemonDetailsApiToPokemonDetails = (pokemon: PokemonDetailsFromApi[]): PokemonParsedDetails[] => {
-    let pokemonTypes: [] = [];
+    const pokemonTypes: [] = [];
 
     pokemon.types.forEach(function(type) {
         pokemonTypes.push(type.type.name)
     })
 
-    let pokemonTypesToString: string = pokemonTypes.toString().replace(',', ', ');
+    const pokemonTypesToString: string = pokemonTypes.toString().replace(',', ', ');
 
     return {
         imageUrL: getImage(pokemon.id),
@@ -26,7 +25,7 @@ const mapPokemonDetailsApiToPokemonDetails = (pokemon: PokemonDetailsFromApi[]):
 
 // Call API, use parser and safe info to 'pokemon'
 export const PokemonDetails = () => {
-    const { pokemonId } = useParams();
+    const {pokemonId} = useParams();
     const [pokemon, setPokemon] = useState<PokemonParsedDetails[]>([]);
 
     useEffect(() => {
@@ -40,7 +39,7 @@ export const PokemonDetails = () => {
 
     return (
         <>
-            <h1>{capitalize(pokemonId)}</h1>
+            <h1>{pokemonId}</h1>
             <img src={pokemon.imageUrL}/>
             <img src={pokemon.imageShinyUrl}/>
             <p>Height: {pokemon.height} cm</p>

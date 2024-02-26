@@ -4,7 +4,6 @@ import { Pokemon, PokemonFromApi } from './models';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { apiURL, getImage } from './assets/utils.tsx'
-import { capitalize } from 'lodash';
 
 // Parser
 export const mapPokemonApiToPokemonView = (pokemon: PokemonFromApi[]): Pokemon[] => {
@@ -18,7 +17,7 @@ export const mapPokemonApiToPokemonView = (pokemon: PokemonFromApi[]): Pokemon[]
     });
 };
 
-// Call API, use parser and safe info to 'pokemons', search functionality, handle fav functionality
+// Call API, use parser and safe info to 'pokemons', search functionality, fav functionality
 export const App = () => {
     // Call API, use parser and safe info to 'pokemons'
     const [pokemons, setPokemons] = useState<Pokemon[]>([]);
@@ -26,7 +25,7 @@ export const App = () => {
 
     useEffect(() => {
         const fetchPokemons = async () => {
-            const response = await axios.get(apiURL);
+            const response: Pokemon[] = await axios.get(apiURL);
             setPokemonList(mapPokemonApiToPokemonView(response.data.results));
             setPokemons(mapPokemonApiToPokemonView(response.data.results));
         };
@@ -35,7 +34,7 @@ export const App = () => {
     }, []);
 
     // Search functionality
-    const handleSearchBar = (event) => {
+    const handleSearchBar = (event: Pokemon[]) => {
         const pokemonSearch: Pokemon[] = pokemonList.filter((pokemon: Pokemon) => {
             return pokemon.name.includes(event.target.value);
         })
@@ -44,7 +43,7 @@ export const App = () => {
 
     // Fav functionality
     const handlePokemonClick = (pokemonId: number) => {
-        const newPokemonsMap = pokemons.map((pokemonInfo: Pokemon) => {
+        const newPokemonsMap: Pokemon[] = pokemons.map((pokemonInfo: Pokemon) => {
             if (pokemonId === pokemonInfo.id) {
                 const newPokemonInfo = { ...pokemonInfo };
                 newPokemonInfo.isFav = !pokemonInfo.isFav;
@@ -65,7 +64,7 @@ export const App = () => {
                     <Link className={'link'} key={pokemon.id} to={`/pokemon/${pokemon.name}`}>
                         <div className={'pokemon'}>
                             <img src={pokemon.imageUrl} />
-                            <p>{capitalize(pokemon.name)}</p>
+                            <p>{pokemon.name}</p>
                             <i
                                 className={pokemon.isFav ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}
                                 onClick={(event) => {
