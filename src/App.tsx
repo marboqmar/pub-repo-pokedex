@@ -1,13 +1,13 @@
 import './App.css'
 import axios from 'axios';
-import { Pokemon, PokemonFromApi } from './models';
+import { PokemonListItem, PokemonListItemFromApi } from './assets/models';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { apiURL, getImage } from './assets/utils.tsx'
+import { getImage } from './assets/utils.tsx'
 
 // Parser
-export const mapPokemonApiToPokemonView = (pokemon: PokemonFromApi[]): Pokemon[] => {
-    return pokemon.map((pokemonItem: PokemonFromApi, index: number) => {
+export const mapPokemonApiToPokemonView = (pokemon: PokemonListItemFromApi): PokemonListItem => {
+    return pokemon.map((pokemonItem: PokemonListItemFromApi, index: number) => {
         return {
             name: pokemonItem.name,
             imageUrl: getImage(index + 1),
@@ -17,25 +17,42 @@ export const mapPokemonApiToPokemonView = (pokemon: PokemonFromApi[]): Pokemon[]
     });
 };
 
-// Call API, use parser and safe info to 'pokemons', search functionality, fav functionality
+// Call API, use parser and safe info to 'pokemons', search functionality, generation display functionality, fav functionality
 export const App = () => {
     // Call API, use parser and safe info to 'pokemons'
-    const [pokemons, setPokemons] = useState<Pokemon[]>([]);
-    const [pokemonList, setPokemonList] = useState<Pokemon[]>([]);
+    const [pokemons, setPokemons] = useState<PokemonListItem>([]);
+    const [pokemonList, setPokemonList] = useState<PokemonListItem>([]);
+
+    const apiCall = async (pokemonNumber: number) => {
+        const response: PokemonListItem[] = await axios.get<PokemonListItemFromApi>(`https://pokeapi.co/api/v2/pokemon?limit=${pokemonNumber}`);
+        setPokemonList(mapPokemonApiToPokemonView(response.data.results));
+        setPokemons(mapPokemonApiToPokemonView(response.data.results));
+    }
 
     useEffect(() => {
         const fetchPokemons = async () => {
-            const response: Pokemon[] = await axios.get(apiURL);
-            setPokemonList(mapPokemonApiToPokemonView(response.data.results));
-            setPokemons(mapPokemonApiToPokemonView(response.data.results));
+            apiCall(151);
         };
 
         fetchPokemons();
     }, []);
 
+    const handleOnChange = async (event) => {
+        console.log(event.target.value)
+        if (event.target.value == 1) {
+            apiCall(151);
+        } else if (event.target.value == 2) {
+            apiCall(251);
+        } else {
+            apiCall(386);
+        }
+    }
+
+
+
     // Search functionality
-    const handleSearchBar = (event: Pokemon[]) => {
-        const pokemonSearch: Pokemon[] = pokemonList.filter((pokemon: Pokemon) => {
+    const handleSearchBar = (event: PokemonListItem[]) => {
+        const pokemonSearch: PokemonListItem[] = pokemonList.filter((pokemon: PokemonListItem) => {
             return pokemon.name.includes(event.target.value);
         })
         setPokemons(pokemonSearch)
@@ -43,7 +60,7 @@ export const App = () => {
 
     // Fav functionality
     const handlePokemonClick = (pokemonId: number) => {
-        const newPokemonsMap: Pokemon[] = pokemons.map((pokemonInfo: Pokemon) => {
+        const newPokemonsMap: PokemonListItem[] = pokemons.map((pokemonInfo: PokemonListItem) => {
             if (pokemonId === pokemonInfo.id) {
                 const newPokemonInfo = { ...pokemonInfo };
                 newPokemonInfo.isFav = !pokemonInfo.isFav;
@@ -59,8 +76,16 @@ export const App = () => {
     return (
         <>
             <input id={'searchBar'} type={'text'} onChange={handleSearchBar} placeholder={'Find your favourite pokemon!'} />
+            <div>
+                <p>How many generations do you want to see?</p>
+                <select id={'selectOption'} onChange={handleOnChange}>
+                    <option value={1}>First generation</option>
+                    <option value={2}>First and second generation</option>
+                    <option value={3}>First, second and third generation</option>
+                </select>
+            </div>
             <div className={'pokemons'}>
-                {pokemons.map((pokemon: Pokemon) => (
+                {pokemons.map((pokemon: PokemonListItem) => (
                     <Link className={'link'} key={pokemon.id} to={`/pokemon/${pokemon.name}`}>
                         <div className={'pokemon'}>
                             <img src={pokemon.imageUrl} />

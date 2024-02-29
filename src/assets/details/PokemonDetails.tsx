@@ -1,50 +1,57 @@
-import { useParams } from 'react-router-dom';
+import {useParams} from 'react-router-dom';
 import {useEffect, useState} from 'react';
 import axios from 'axios';
-import {PokemonParsedDetails, PokemonDetailsFromApi} from '../../models.ts';
-import { getImage, detailsApiURL, getShinyImage } from '../utils.tsx';
+import {PokemonParsedDetails, PokemonDetailsFromApi} from '../models';
+import {detailsApiURL} from '../utils.tsx';
 
 // Parser
-const mapPokemonDetailsApiToPokemonDetails = (pokemon: PokemonDetailsFromApi[]): PokemonParsedDetails[] => {
+const mapPokemonDetailsApiToPokemonParsedDetails = (dataFromApi: PokemonDetailsFromApi): PokemonParsedDetails => {
+    const {sprites, height, weight, types} = dataFromApi;
     const pokemonTypes: [] = [];
 
-    pokemon.types.forEach(function(type) {
+    types.forEach(function(type) {
         pokemonTypes.push(type.type.name)
     })
 
     const pokemonTypesToString: string = pokemonTypes.toString().replace(',', ', ');
 
     return {
-        imageUrL: getImage(pokemon.id),
-        imageShinyUrl: getShinyImage(pokemon.id),
-        height: pokemon.height,
-        weight: pokemon.weight,
-        type: pokemonTypesToString,
+        images: {
+            imageUrl: sprites.front_default,
+            imageShinyUrl: sprites.front_shiny,
+        },
+        height,
+        weight,
+        types: pokemonTypesToString,
     }
 };
 
 // Call API, use parser and safe info to 'pokemon'
 export const PokemonDetails = () => {
     const {pokemonId} = useParams();
-    const [pokemon, setPokemon] = useState<PokemonParsedDetails[]>([]);
+    const [pokemonInfo, setPokemonInfo] = useState<PokemonParsedDetails>();
 
     useEffect(() => {
-        const fetchPokemon = async () => {
-            const response = await axios.get(`${detailsApiURL + pokemonId}`);
-            setPokemon(mapPokemonDetailsApiToPokemonDetails(response.data));
+        const fetchDetails = async () => {
+            const response = await axios.get<PokemonDetailsFromApi>(`${detailsApiURL + pokemonId}`);
+            setPokemonInfo(mapPokemonDetailsApiToPokemonParsedDetails(response.data));
         };
 
-        fetchPokemon();
+        fetchDetails();
     }, []);
+
+    if (!pokemonInfo) {
+        return <>Loading pokemon</>
+    }
 
     return (
         <>
             <h1>{pokemonId}</h1>
-            <img src={pokemon.imageUrL}/>
-            <img src={pokemon.imageShinyUrl}/>
-            <p>Height: {pokemon.height} cm</p>
-            <p>Weight: {pokemon.weight / 10} kg</p>
-            <p>Type: {pokemon.type}</p>
+            <img src={pokemonInfo.images.imageUrl}/>
+            <img src={pokemonInfo.images.imageShinyUrl}/>
+            <p>Height: {pokemonInfo.height} cm</p>
+            <p>Weight: {pokemonInfo.weight / 10} kg</p>
+            <p>Type: {pokemonInfo.types}</p>
         </>
     )
 };
