@@ -37,6 +37,7 @@ export const App = () => {
         fetchPokemons();
     }, []);
 
+    //Generation display functionality
     const handleOnChange = async (event) => {
         if (event.target.value == 1) {
             apiCall(151);
@@ -77,7 +78,7 @@ export const App = () => {
             <input id={'searchBar'} type={'text'} onChange={handleSearchBar} placeholder={'Find your favourite pokemon!'} />
             <div>
                 <p>How many generations do you want to see?</p>
-                <select id={'selectOption'} onChange={handleOnChange}>
+                <select onChange={handleOnChange}>
                     <option value={1}>First generation</option>
                     <option value={2}>First and second generation</option>
                     <option value={3}>First, second and third generation</option>
