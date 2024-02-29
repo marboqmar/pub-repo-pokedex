@@ -38,7 +38,6 @@ export const App = () => {
     }, []);
 
     const handleOnChange = async (event) => {
-        console.log(event.target.value)
         if (event.target.value == 1) {
             apiCall(151);
         } else if (event.target.value == 2) {
