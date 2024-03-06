@@ -1,7 +1,7 @@
 import './App.css'
 import axios from 'axios';
 import { PokemonListItem, PokemonListItemFromApi } from './assets/models';
-import { useState, useEffect } from 'react';
+import {useState, useEffect, ChangeEvent} from 'react';
 import { Link } from 'react-router-dom';
 import { getImage } from './assets/utils.tsx'
 
@@ -17,14 +17,16 @@ export const mapPokemonApiToPokemonView = (pokemon: PokemonListItemFromApi): Pok
     });
 };
 
-// Call API, use parser and safe info to 'pokemons', search functionality, generation display functionality, fav functionality
+// Call API, use parser and safe info to 'pokemons', fav functionality, generation display functionality, filter functionality,
 export const App = () => {
     // Call API, use parser and safe info to 'pokemons'
     const [pokemons, setPokemons] = useState<PokemonListItem>([]);
     const [pokemonList, setPokemonList] = useState<PokemonListItem>([]);
+    const [search, setSearch] = useState('');
+    const [isFavButtonClicked, setIsFavButtonClicked] = useState(false);
 
     const apiCall = async (pokemonNumber: number) => {
-        const response: PokemonListItem[] = await axios.get<PokemonListItemFromApi>(`https://pokeapi.co/api/v2/pokemon?limit=${pokemonNumber}`);
+        const response = await axios.get(`https://pokeapi.co/api/v2/pokemon?limit=${pokemonNumber}`);
         setPokemonList(mapPokemonApiToPokemonView(response.data.results));
         setPokemons(mapPokemonApiToPokemonView(response.data.results));
     }
@@ -36,27 +38,6 @@ export const App = () => {
 
         fetchPokemons();
     }, []);
-
-    //Generation display functionality
-    const handleOnChange = async (event) => {
-        if (event.target.value == 1) {
-            apiCall(151);
-        } else if (event.target.value == 2) {
-            apiCall(251);
-        } else {
-            apiCall(386);
-        }
-    }
-
-
-
-    // Search functionality
-    const handleSearchBar = (event: PokemonListItem[]) => {
-        const pokemonSearch: PokemonListItem[] = pokemonList.filter((pokemon: PokemonListItem) => {
-            return pokemon.name.includes(event.target.value);
-        })
-        setPokemons(pokemonSearch)
-    };
 
     // Fav functionality
     const handlePokemonClick = (pokemonId: number) => {
@@ -73,6 +54,47 @@ export const App = () => {
         setPokemons(newPokemonsMap);
     };
 
+    const handleFavsClick = () => {
+        setIsFavButtonClicked(!isFavButtonClicked)
+    };
+
+    //Generation display functionality
+    const handleOnChange = async (event: ChangeEvent<HTMLSelectElement>) => {
+
+        if (Number(event.target.value) === 1) {
+            await apiCall(151);
+        } else if (Number(event.target.value) === 2) {
+            await apiCall(251);
+        } else {
+            await apiCall(386);
+        }
+    }
+
+    // Filter functionality
+    const handleSearchBar = (event: ChangeEvent<HTMLInputElement>) => {
+        setSearch(event.target.value);
+    };
+
+    const filteredPokemon = !search && !isFavButtonClicked
+        ? pokemons
+        : pokemons.filter((pokemon) => {
+            if (isFavButtonClicked && !pokemon.isFav) {
+                return false;
+            }
+
+            if (!search) {
+                return true;
+            }
+
+            const searchId = Number(search);
+
+            if (Number.isNaN(searchId)) {
+                return pokemon.name.includes(search);
+            }
+
+            return pokemon.id === searchId;
+        });
+
     return (
         <>
             <input id={'searchBar'} type={'text'} onChange={handleSearchBar} placeholder={'Find your favourite pokemon!'} />
@@ -84,8 +106,9 @@ export const App = () => {
                     <option value={3}>First, second and third generation</option>
                 </select>
             </div>
+            <button onClick={handleFavsClick}>Your favs!</button>
             <div className={'pokemons'}>
-                {pokemons.map((pokemon: PokemonListItem) => (
+                {filteredPokemon.map((pokemon: PokemonListItem) => (
                     <Link className={'link'} key={pokemon.id} to={`/pokemon/${pokemon.name}`}>
                         <div className={'pokemon'}>
                             <img src={pokemon.imageUrl} />
