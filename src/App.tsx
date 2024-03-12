@@ -4,6 +4,7 @@ import { PokemonListItem, PokemonListItemFromApi } from './assets/models';
 import {useState, useEffect, ChangeEvent} from 'react';
 import { Link } from 'react-router-dom';
 import { getImage } from './assets/utils.tsx'
+import {useMemo} from "react";
 
 // Parser
 export const mapPokemonApiToPokemonView = (pokemon: PokemonListItemFromApi): PokemonListItem => {
@@ -13,6 +14,7 @@ export const mapPokemonApiToPokemonView = (pokemon: PokemonListItemFromApi): Pok
             imageUrl: getImage(index + 1),
             id: index + 1,
             isFav: false,
+            isDeleted: false,
         };
     });
 };
@@ -21,13 +23,12 @@ export const mapPokemonApiToPokemonView = (pokemon: PokemonListItemFromApi): Pok
 export const App = () => {
     // Call API, use parser and safe info to 'pokemons'
     const [pokemons, setPokemons] = useState<PokemonListItem>([]);
-    const [pokemonList, setPokemonList] = useState<PokemonListItem>([]);
     const [search, setSearch] = useState('');
     const [isFavButtonClicked, setIsFavButtonClicked] = useState(false);
+    const [isPokemonDeleted, setIsPokemonDeleted] = useState(false);
 
     const apiCall = async (pokemonNumber: number) => {
         const response = await axios.get(`https://pokeapi.co/api/v2/pokemon?limit=${pokemonNumber}`);
-        setPokemonList(mapPokemonApiToPokemonView(response.data.results));
         setPokemons(mapPokemonApiToPokemonView(response.data.results));
     }
 
@@ -58,6 +59,23 @@ export const App = () => {
         setIsFavButtonClicked(!isFavButtonClicked)
     };
 
+    // Delete functionality
+    const handlePokemonDelete = (pokemonId: number) => {
+        setIsPokemonDeleted(true);
+
+        const newPokemonsMap: PokemonListItem[] = pokemons.map((pokemonInfo: PokemonListItem) => {
+            if (pokemonId === pokemonInfo.id) {
+                const newPokemonInfo = { ...pokemonInfo };
+                newPokemonInfo.isDeleted = true;
+                return newPokemonInfo;
+            }
+
+            return pokemonInfo;
+        });
+
+        setPokemons(newPokemonsMap);
+    };
+
     //Generation display functionality
     const handleOnChange = async (event: ChangeEvent<HTMLSelectElement>) => {
 
@@ -75,10 +93,13 @@ export const App = () => {
         setSearch(event.target.value);
     };
 
-    const filteredPokemon = !search && !isFavButtonClicked
-        ? pokemons
-        : pokemons.filter((pokemon) => {
-            if (isFavButtonClicked && !pokemon.isFav) {
+    const filteredPokemon = useMemo (() => {
+        if (!search && !isFavButtonClicked && !isPokemonDeleted) {
+            return pokemons
+        }
+
+        return pokemons.filter((pokemon) => {
+            if ((isFavButtonClicked && !pokemon.isFav) || pokemon.isDeleted) {
                 return false;
             }
 
@@ -91,9 +112,11 @@ export const App = () => {
             if (Number.isNaN(searchId)) {
                 return pokemon.name.includes(search);
             }
-
             return pokemon.id === searchId;
-        });
+            });
+
+    }, [search, pokemons, isFavButtonClicked]);
+
 
     return (
         <>
@@ -122,6 +145,13 @@ export const App = () => {
                                     handlePokemonClick(pokemon.id);
                                 }}
                                 style={{color: pokemon.isFav? 'red' : 'black'}}
+                            />
+                            <i className={"fa-solid fa-trash"} onClick={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+
+                                handlePokemonDelete(pokemon.id)
+                            }}
                             />
                         </div>
                     </Link>

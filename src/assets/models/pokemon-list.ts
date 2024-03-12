@@ -3,6 +3,7 @@ export interface PokemonListItem {
     imageUrl: string;
     id: number;
     isFav: boolean;
+    isDeleted: boolean;
 }
 
 export interface PokemonListItemFromApi {
