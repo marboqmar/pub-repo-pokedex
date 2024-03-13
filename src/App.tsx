@@ -19,6 +19,8 @@ export const mapPokemonApiToPokemonView = (pokemon: PokemonListItemFromApi): Pok
     });
 };
 
+
+
 // Call API, use parser and safe info to 'pokemons', fav functionality, generation display functionality, filter functionality,
 export const App = () => {
     // Call API, use parser and safe info to 'pokemons'
@@ -26,6 +28,8 @@ export const App = () => {
     const [search, setSearch] = useState('');
     const [isFavButtonClicked, setIsFavButtonClicked] = useState(false);
     const [isPokemonDeleted, setIsPokemonDeleted] = useState(false);
+    // const [deletedPokemon, setDeletedPokemon] = useState<[]>([]);
+
 
     const apiCall = async (pokemonNumber: number) => {
         const response = await axios.get(`https://pokeapi.co/api/v2/pokemon?limit=${pokemonNumber}`);
@@ -65,16 +69,48 @@ export const App = () => {
 
         const newPokemonsMap: PokemonListItem[] = pokemons.map((pokemonInfo: PokemonListItem) => {
             if (pokemonId === pokemonInfo.id) {
+                const prevValue = localStorage.getItem('deletedPokemonList')
+                localStorage.setItem('deletedPokemonList',`${prevValue + ',' + pokemonInfo.id}`)
+                console.log(localStorage.getItem('deletedPokemonList'))
+
+                // setDeletedPokemon(deletedPokemon => [...deletedPokemon, pokemonInfo.id])
                 const newPokemonInfo = { ...pokemonInfo };
                 newPokemonInfo.isDeleted = true;
                 return newPokemonInfo;
             }
-
             return pokemonInfo;
         });
 
         setPokemons(newPokemonsMap);
     };
+
+    //On restart, delete previously deleted pokemon
+    // useEffect(() => {
+        if (localStorage.getItem('deletedPokemonList')) {
+            const deletedPokemonId = (localStorage.getItem('deletedPokemonList')).split(',')
+            let newPokemonsMap: PokemonListItem[] = []
+
+            deletedPokemonId.forEach((id) => {
+                console.log(id)
+                newPokemonsMap = pokemons.map((pokemonInfo: PokemonListItem) => {
+                    if (Number(id) === pokemonInfo.id) {
+                        console.log(Number(id), pokemonInfo.id)
+                        const newPokemonInfo = { ...pokemonInfo };
+                        newPokemonInfo.isDeleted = true;
+                        console.log(newPokemonInfo)
+                        return newPokemonInfo;
+                    }
+                    return pokemonInfo;
+                });
+            })
+
+    //         setPokemons(newPokemonsMap);
+        }
+    // }, []);
+
+
+
+
 
     //Generation display functionality
     const handleOnChange = async (event: ChangeEvent<HTMLSelectElement>) => {
@@ -115,7 +151,7 @@ export const App = () => {
             return pokemon.id === searchId;
             });
 
-    }, [search, pokemons, isFavButtonClicked]);
+    }, [search, pokemons, isFavButtonClicked, isPokemonDeleted]);
 
 
     return (
@@ -144,14 +180,16 @@ export const App = () => {
 
                                     handlePokemonClick(pokemon.id);
                                 }}
-                                style={{color: pokemon.isFav? 'red' : 'black'}}
+                                style={{color: pokemon.isFav ? 'red' : 'black'}}
                             />
-                            <i className={"fa-solid fa-trash"} onClick={(event) => {
-                                event.preventDefault();
-                                event.stopPropagation();
+                            <i className={"fa-solid fa-trash"}
+                               onClick={(event) => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
 
-                                handlePokemonDelete(pokemon.id)
-                            }}
+                                    handlePokemonDelete(pokemon.id)
+                                }}
+                               style={{color: pokemon.isDeleted ? 'red' : 'black'}}
                             />
                         </div>
                     </Link>
