@@ -6,20 +6,22 @@ import { Link } from 'react-router-dom';
 import { getImage } from './assets/utils.tsx'
 import {useMemo} from "react";
 
+
 // Parser
 export const mapPokemonApiToPokemonView = (pokemon: PokemonListItemFromApi): PokemonListItem => {
+    const pokemonDeleted = localStorage.getItem('deletedPokemonList')?.split(',')?? [];
+
     return pokemon.map((pokemonItem: PokemonListItemFromApi, index: number) => {
+        const id = index + 1;
         return {
             name: pokemonItem.name,
-            imageUrl: getImage(index + 1),
-            id: index + 1,
+            imageUrl: getImage(id),
+            id: id,
             isFav: false,
-            isDeleted: false,
+            isDeleted: pokemonDeleted.includes(id.toString()),
         };
     });
 };
-
-
 
 // Call API, use parser and safe info to 'pokemons', fav functionality, generation display functionality, filter functionality,
 export const App = () => {
@@ -27,7 +29,7 @@ export const App = () => {
     const [pokemons, setPokemons] = useState<PokemonListItem>([]);
     const [search, setSearch] = useState('');
     const [isFavButtonClicked, setIsFavButtonClicked] = useState(false);
-    const [isPokemonDeleted, setIsPokemonDeleted] = useState(false);
+    const [isPokemonDeleted, setIsPokemonDeleted] = useState(Boolean(localStorage.getItem('deletedPokemonList')));
     // const [deletedPokemon, setDeletedPokemon] = useState<[]>([]);
 
 
@@ -70,12 +72,12 @@ export const App = () => {
         const newPokemonsMap: PokemonListItem[] = pokemons.map((pokemonInfo: PokemonListItem) => {
             if (pokemonId === pokemonInfo.id) {
                 const prevValue = localStorage.getItem('deletedPokemonList')
-                localStorage.setItem('deletedPokemonList',`${prevValue + ',' + pokemonInfo.id}`)
-                console.log(localStorage.getItem('deletedPokemonList'))
-
-                // setDeletedPokemon(deletedPokemon => [...deletedPokemon, pokemonInfo.id])
                 const newPokemonInfo = { ...pokemonInfo };
+
+                localStorage.setItem('deletedPokemonList',`${prevValue},${pokemonInfo.id}`)
+
                 newPokemonInfo.isDeleted = true;
+
                 return newPokemonInfo;
             }
             return pokemonInfo;
@@ -83,34 +85,6 @@ export const App = () => {
 
         setPokemons(newPokemonsMap);
     };
-
-    //On restart, delete previously deleted pokemon
-    // useEffect(() => {
-        if (localStorage.getItem('deletedPokemonList')) {
-            const deletedPokemonId = (localStorage.getItem('deletedPokemonList')).split(',')
-            let newPokemonsMap: PokemonListItem[] = []
-
-            deletedPokemonId.forEach((id) => {
-                console.log(id)
-                newPokemonsMap = pokemons.map((pokemonInfo: PokemonListItem) => {
-                    if (Number(id) === pokemonInfo.id) {
-                        console.log(Number(id), pokemonInfo.id)
-                        const newPokemonInfo = { ...pokemonInfo };
-                        newPokemonInfo.isDeleted = true;
-                        console.log(newPokemonInfo)
-                        return newPokemonInfo;
-                    }
-                    return pokemonInfo;
-                });
-            })
-
-    //         setPokemons(newPokemonsMap);
-        }
-    // }, []);
-
-
-
-
 
     //Generation display functionality
     const handleOnChange = async (event: ChangeEvent<HTMLSelectElement>) => {
